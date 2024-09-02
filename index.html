@@ -1,1 +1,219 @@
 iihsdsdffsbj
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\10747959\Downloads> ssh -i "ran_key.pem" ec2-user@ec2-54-219-48-250.us-west-1.compute.amazonaws.com
+The authenticity of host 'ec2-54-219-48-250.us-west-1.compute.amazonaws.com (54.219.48.250)' can't be established.
+ED25519 key fingerprint is SHA256:JqOEikOz8w9J9SuRGH83kpGVY2zykqLzbtSIW77V0m8.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'ec2-54-219-48-250.us-west-1.compute.amazonaws.com' (ED25519) to the list of known hosts.
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+[ec2-user@ip-172-31-10-246 ~]$ sudo su -
+[root@ip-172-31-10-246 ~]# hostnamectl set_hostname server.example.com
+Unknown command verb set_hostname.
+[root@ip-172-31-10-246 ~]# hostnamectl set-hostname server.example.com
+[root@ip-172-31-10-246 ~]# bash
+[root@server ~]# yum install git
+Last metadata expiration check: 0:02:20 ago on Mon Sep  2 09:06:39 2024.
+Dependencies resolved.
+=====================================================================================================================================
+ Package                          Architecture           Version                                   Repository                   Size
+=====================================================================================================================================
+Installing:
+ git                              x86_64                 2.40.1-1.amzn2023.0.3                     amazonlinux                  54 k
+Installing dependencies:
+ git-core                         x86_64                 2.40.1-1.amzn2023.0.3                     amazonlinux                 4.3 M
+ git-core-doc                     noarch                 2.40.1-1.amzn2023.0.3                     amazonlinux                 2.6 M
+ perl-Error                       noarch                 1:0.17029-5.amzn2023.0.2                  amazonlinux                  41 k
+ perl-File-Find                   noarch                 1.37-477.amzn2023.0.6                     amazonlinux                  26 k
+ perl-Git                         noarch                 2.40.1-1.amzn2023.0.3                     amazonlinux                  42 k
+ perl-TermReadKey                 x86_64                 2.38-9.amzn2023.0.2                       amazonlinux                  36 k
+ perl-lib                         x86_64                 0.65-477.amzn2023.0.6                     amazonlinux                  15 k
+
+Transaction Summary
+=====================================================================================================================================
+Install  8 Packages
+
+Total download size: 7.1 M
+Installed size: 34 M
+Is this ok [y/N]: y
+Downloading Packages:
+(1/8): git-2.40.1-1.amzn2023.0.3.x86_64.rpm                                                          952 kB/s |  54 kB     00:00
+(2/8): perl-Error-0.17029-5.amzn2023.0.2.noarch.rpm                                                  2.0 MB/s |  41 kB     00:00
+(3/8): perl-File-Find-1.37-477.amzn2023.0.6.noarch.rpm                                               1.2 MB/s |  26 kB     00:00
+(4/8): perl-Git-2.40.1-1.amzn2023.0.3.noarch.rpm                                                     1.4 MB/s |  42 kB     00:00
+(5/8): git-core-doc-2.40.1-1.amzn2023.0.3.noarch.rpm                                                  18 MB/s | 2.6 MB     00:00
+(6/8): perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64.rpm                                               2.3 MB/s |  36 kB     00:00
+(7/8): perl-lib-0.65-477.amzn2023.0.6.x86_64.rpm                                                     971 kB/s |  15 kB     00:00
+(8/8): git-core-2.40.1-1.amzn2023.0.3.x86_64.rpm                                                      22 MB/s | 4.3 MB     00:00
+-------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                 29 MB/s | 7.1 MB     00:00
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                             1/1
+  Installing       : git-core-2.40.1-1.amzn2023.0.3.x86_64                                                                       1/8
+  Installing       : git-core-doc-2.40.1-1.amzn2023.0.3.noarch                                                                   2/8
+  Installing       : perl-lib-0.65-477.amzn2023.0.6.x86_64                                                                       3/8
+  Installing       : perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64                                                                 4/8
+  Installing       : perl-File-Find-1.37-477.amzn2023.0.6.noarch                                                                 5/8
+  Installing       : perl-Error-1:0.17029-5.amzn2023.0.2.noarch                                                                  6/8
+  Installing       : perl-Git-2.40.1-1.amzn2023.0.3.noarch                                                                       7/8
+  Installing       : git-2.40.1-1.amzn2023.0.3.x86_64                                                                            8/8
+  Running scriptlet: git-2.40.1-1.amzn2023.0.3.x86_64                                                                            8/8
+  Verifying        : git-2.40.1-1.amzn2023.0.3.x86_64                                                                            1/8
+  Verifying        : git-core-2.40.1-1.amzn2023.0.3.x86_64                                                                       2/8
+  Verifying        : git-core-doc-2.40.1-1.amzn2023.0.3.noarch                                                                   3/8
+  Verifying        : perl-Error-1:0.17029-5.amzn2023.0.2.noarch                                                                  4/8
+  Verifying        : perl-File-Find-1.37-477.amzn2023.0.6.noarch                                                                 5/8
+  Verifying        : perl-Git-2.40.1-1.amzn2023.0.3.noarch                                                                       6/8
+  Verifying        : perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64                                                                 7/8
+  Verifying        : perl-lib-0.65-477.amzn2023.0.6.x86_64                                                                       8/8
+
+Installed:
+  git-2.40.1-1.amzn2023.0.3.x86_64            git-core-2.40.1-1.amzn2023.0.3.x86_64       git-core-doc-2.40.1-1.amzn2023.0.3.noarch
+  perl-Error-1:0.17029-5.amzn2023.0.2.noarch  perl-File-Find-1.37-477.amzn2023.0.6.noarch perl-Git-2.40.1-1.amzn2023.0.3.noarch
+  perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64 perl-lib-0.65-477.amzn2023.0.6.x86_64
+
+Complete!
+[root@server ~]# mkdir /projectk
+[root@server ~]# cd /projectk
+[root@server projectk]# git init
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint:   git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint:   git branch -m <name>
+Initialized empty Git repository in /projectk/.git/
+[root@server projectk]# git init --bare
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint:   git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint:   git branch -m <name>
+Initialized empty Git repository in /projectk/
+[root@server projectk]# sudo su -
+Last login: Mon Sep  2 09:07:47 UTC 2024 on pts/1
+[root@server ~]# vim /etc/ssh/sshd_config
+[root@server ~]# systemctl restart sshd
+[root@server ~]# systemctl enable sshd
+[root@server ~]# ip a s
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute
+       valid_lft forever preferred_lft forever
+2: enX0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc fq_codel state UP group default qlen 1000
+    link/ether 06:22:97:61:87:73 brd ff:ff:ff:ff:ff:ff
+    altname eni-062a9477b7fcd0454
+    altname device-number-0.0
+    inet 172.31.10.246/20 metric 512 brd 172.31.15.255 scope global dynamic enX0
+       valid_lft 3204sec preferred_lft 3204sec
+    inet6 fe80::422:97ff:fe61:8773/64 scope link
+       valid_lft forever preferred_lft forever
+[root@server ~]# client_loop: send disconnect: Connection reset
+PS C:\Users\10747959\Downloads> ssh -i "ran_key.pem" ec2-user@ec2-54-219-48-250.us-west-1.compute.amazonaws.com
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+Last login: Mon Sep  2 09:07:01 2024 from 136.226.233.6
+[ec2-user@server ~]$ sudo su -
+Last login: Mon Sep  2 09:10:31 UTC 2024 on pts/2
+[root@server ~]# ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /root/.ssh/id_rsa
+Your public key has been saved in /root/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:9AlJhgAak+0Z70xKjSYI0BtPelg6HjqP8eDnFjLlgD0 root@server.example.com
+The key's randomart image is:
++---[RSA 3072]----+
+|=+.... .o        |
+|o+= o .o .       |
+|=o /    +        |
+|+.E.*  . o .     |
+| *+X    S o      |
+|=oooo            |
+|.Bo .            |
+|..oo             |
+|  +.             |
++----[SHA256]-----+
+[root@server ~]# cd ./.ssh
+[root@server .ssh]# ll -lr
+total 12
+-rw-r--r--. 1 root root  577 Sep  2 09:20 id_rsa.pub
+-rw-------. 1 root root 2610 Sep  2 09:20 id_rsa
+-rw-------. 1 root root  555 Sep  2 09:06 authorized_keys
+[root@server .ssh]# cat id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCozQW1ZsRY565VIfybO8c4VxpZs8Au8IaXZMc8DgfGHrmK93JL9A0HNejdRWruofQOOsHCFACx2Gg3wOIkh2yJtt0yGKiT9ChWwc/JMIHatwPdHr6v6vIyWJ2r5qi3P1TLPCj4fWP8MNmkvY6jTuJFa+4E0550PDiIM638yYR8JNf1k59pP8Z0xxIB9BRcdK130fK2M9AyVxmI3n6eReP7fDqbiVT62togX3SvBEbFbX9AM7xo54dpbM+ATPaI2pYAAB+72rIf6Rc/B85cf/m2jCLYFA6phCzxrY7oqrocf3J4hUpf3/pvP+uIQaZKnk5D7LKfq8MIheiVzhQSJHUNUr8Jl5tDwIVnDc4fvtelhKExrv9gBTxO2BRiDwHFX3PXaMN2uvGbIIKyKxWglhc2lBU9qrVZEEYqdH3PXOac8RXBpZHmozDYHMo5j6PeSWpavMZaFzkDAWa53mZmXujNa90fRCi0eW8jiX7ITQotMST1Is4bWjk933e4JYlNNnc= root@server.example.com
+[root@server .ssh]# cd
+[root@server ~]# cd /projectk
+[root@server projectk]# vim index.html
+[root@server projectk]# git add index.html
+[root@server projectk]# git commit -m "first commit"
+[master (root-commit) e0984d2] first commit
+ Committer: root <root@server.example.com>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 1 file changed, 1 insertion(+)
+ create mode 100644 index.html
+[root@server projectk]# git branch -M main
+[root@server projectk]# git remote add origin git@github.com:Dilip0110/ash.git
+[root@server projectk]# git push -u origin main
+The authenticity of host 'github.com (140.82.116.4)' can't be established.
+ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'github.com' (ED25519) to the list of known hosts.
+Enumerating objects: 3, done.
+Counting objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 240 bytes | 240.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+To github.com:Dilip0110/ash.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+[root@server projectk]#
