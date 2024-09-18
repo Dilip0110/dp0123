@@ -1,0 +1,973 @@
+DOCKER AND JENKINS
+Host EKS Cluster
+1.	Create an instance for creating eks-cluster with Ubuntu as an Operating System and Allow All traffic. 
+2.	Create IAM users, allow below permissions to the users:
+   AdministratorAccess, AmazonEC2FullAccess, AmazonRoute53FullAccess, AmazonS3FullAccess, IAMFullAccess
+3.	Create Roles, allow below permissions:
+  AmazonEKSClusterPolicy,AmazonElasticContainerRegistryPublicFullAccess,IAMFullAccess
+4.	Launch instance in terminal :
+ 
+   apt-get update -y
+   apt install unzip -y
+	 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+	 unzip awscliv2.zip
+	 sudo ./aws/install
+	 aws configure
+# Install EKS Tool
+	 curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+	 sudo mv /tmp/eksctl /usr/local/bin
+	 eksctl version
+# Install Kubectl
+	 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+	 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl 
+# kubectl version --client
+	 Create EKS Cluster
+	 eksctl create cluster --name my-cluster --region region-code --version 1.29 --vpc-public-subnets subnet-ExampleID1,subnet-ExampleID2 --without-nodegroup
+ 
+5.	Create another instance ‘docker-server’ to create a docker image with amazon linux os 
+	yum install docker -y
+	systemctl start docker
+	systemctl enable docker
+	yum install git -y
+	git clone https://github.com/abdulkadir18apr/Pallindrome-BirthDay.git
+	cd Palindrome-Birthday
+	ls
+	cd Pallindrome-BirthDay/
+	vim Dockerfile
+ 
+paste the contents in the above file
+ 
+# Use the official httpd image from the Docker Hub
+FROM httpd:latest
+# Copy the contents of the repository to the Apache document root
+COPY . /usr/local/apache2/htdocs/
+# Expose port 80
+EXPOSE 80
+# Start the Apache server
+CMD ["httpd-foreground"]
+ 
+#Building docker image
+	docker build -t pallindrome-birthday .
+#Running on localhost
+	docker run -d -p 80:80 pallindrome-birthday
+  docker images
+	aws configure
+	ssh-keygen
+ 
+6.	Go to aws.com > private registry > create repository > add name > create
+Note: image name and repository should be same ‘pallindrome-birthday’
+ 
+Enter the registry > view push commands > Run 1,3,4 commands as follows:
+ 
+	aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 122610503177.dkr.ecr.ap-southeast-1.amazonaws.com
+ 
+	docker tag pallindrome-birthday:latest 122610503177.dkr.ecr.ap-southeast-1.amazonaws.com/pallindrome-birthday:latest
+ 
+  docker push 122610503177.dkr.ecr.ap-southeast-1.amazonaws.com/pallindrome-birthday:latest
+ 
+7.	Create a node-group:
+ 
+eksctl create nodegroup \
+  --cluster my-cluster \
+  --region us-east-2 \
+  --name my-node-group \
+  --node-ami-family Ubuntu2004 \
+  --node-type t2.small \
+  --subnet-ids subnet-086ced1a84c94a342,subnet-01695faa5e0e61d97 \
+  --nodes 3 \
+  --nodes-min 2 \
+  --nodes-max 4 \
+  --ssh-access \
+  --ssh-public-key /root/.ssh/id_rsa.pub
+ 
+#Check if your nodes are ready
+kubectl get nodes
+ 
+mkdir /files
+cd files
+vim deployment.yaml
+ 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-container
+        image: <your-eks-repo-url>/my-image:latest
+        ports:
+        - containerPort: 80
+ 
+kubectl apply -f deployment.yaml
+kubectl get deployment
+kubectl get pods # Check if all are running
+ 
+vim services.yaml
+ 
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+ 
+kubectl apply -f services.yaml
+kubectl expose deployment/my-deployment
+kubectl get svc -A
+ 
+copy the external ip of my-deployment {a........amazon.com}
+ 
+Run the copied ip in crome browser.
+The webpage should be live.
+
+jen2
+### Docker Commands
+
+- rpmquery docker
+- yum install docker -y
+- docker info
+- systemctl start docker
+- systemctl enable docker
+- docker info
+
+- docker images
+- docker pull httpd
+- docker pull ubuntu
+- docker ps 
+- docker ps -a
+
+- docker run -it --name webapp-01 ubuntu:latest /bin/bash
+- exit
+- docker inspect webapp-01 | less
+- docker ps -a
+- docker start webapp-01 
+- docker attach webapp-01 
+
+inside webapp-01 
+- apt update -y
+- apt install apache2 -y
+- service apache2 start 
+- service apache2 status
+- cd /var/www/html
+- touch index.html
+- cat > index.html 
+  Added some lines from webapp-01
+- cat index.html
+- cd
+ctrl + p  + ctrl + q    Outside of webapp-01
+- curl 172.17.0.2:80    Nothing visible, since we haven't added port 80, so add port 80 in security rules, and try again
+- docker ps -a
+- curl 172.17.0.2
+
+- docker run -it --name webapp-02 -p 8080:80 ubuntu:latest /bin/bash
+- do the same procedure as done in previously, Website will be available at <public_ip>:8080, if you added tcp port 8080 in inbound security rules
+- docker kill webapp-02     //all the data will be deleted, since it was stored on temporary storage
+
+// to add persistant volume to the container
+- docker volume ls
+- docker volume create myvol-01    //created a volume, stored at /var/lib/docker/volumes/myvol-01
+- docker run -it --name webapp-03 -p 2222:80 -v my-vol:/var/www/html ubuntu:latest /bin/bash        //mounted volume on location /var/www/html
+- add index.html, it will be available even if we kill th econtainer 
+- docker kill webapp-03
+- cd /var/lib/docker/volumes/myvol-01/_data 
+- ls (index.html still visible)
+
+
+- docker commit webapp-01 nginx-image:latest
+- docker tag <image_id> ngnix:image:latest
+
+
+ansible
+### *Build 3 instances t2.micro on amazon linux, controller, host-manager-1 and host-manager-2*
+- hostnamectl set-hostname controller
+- bash
+- ssh-keygen
+- ip a s
+- cd .ssh
+- vim authorized_keys
+- cat id_rsa.pub
+  
+#### *Here incase of controller copy paste the public key of other two instances and paste the keys in the vim file and likewise do the same for other 2 instances to establish connection*
+
+### *Controller*
+- systemctl start sshd 
+- systemctl enable sshd
+
+#### *Use ping command to check if the connection is established between the instances and allow ICMP port in network security*
+
+### *Controller -   Install ansible*
+
+- yum install ansible* -y
+- ansible --version
+- cd /etc/ansible/
+- vim ansible.cfg
+
+### *Paste the below content inside the vim file*
+
+```cfg
+
+# config file for ansible -- http://ansible.com/
+# ==============================================
+
+# nearly all parameters can be overridden in ansible-playbook 
+# or with command line flags. ansible will read ANSIBLE_CONFIG,
+# ansible.cfg in the current working directory, .ansible.cfg in
+# the home directory or /etc/ansible/ansible.cfg, whichever it
+# finds first
+
+[defaults]
+
+# some basic default values...
+
+hostfile       = /etc/ansible/hosts
+library        = /usr/share/ansible
+remote_tmp     = $HOME/.ansible/tmp
+pattern        = *
+forks          = 5
+poll_interval  = 15
+sudo_user      = root
+#ask_sudo_pass = True
+#ask_pass      = True
+transport      = smart
+remote_port    = 22
+
+# additional paths to search for roles in, colon seperated
+#roles_path    = /etc/ansible/roles
+
+# uncomment this to disable SSH key host checking
+#host_key_checking = False
+
+# change this for alternative sudo implementations
+sudo_exe = sudo
+
+# what flags to pass to sudo
+#sudo_flags = -H
+
+# SSH timeout
+timeout = 10
+
+# default user to use for playbooks if user is not specified
+# (/usr/bin/ansible will use current user as default)
+#remote_user = root
+
+# logging is off by default unless this path is defined
+# if so defined, consider logrotate
+#log_path = /var/log/ansible.log
+
+# default module name for /usr/bin/ansible
+#module_name = command
+
+# use this shell for commands executed under sudo
+# you may need to change this to bin/bash in rare instances
+# if sudo is constrained
+#executable = /bin/sh
+
+# if inventory variables overlap, does the higher precedence one win
+# or are hash values merged together?  The default is 'replace' but
+# this can also be set to 'merge'.
+#hash_behaviour = replace
+
+# How to handle variable replacement - as of 1.2, Jinja2 variable syntax is
+# preferred, but we still support the old $variable replacement too.
+# Turn off ${old_style} variables here if you like.
+#legacy_playbook_variables = yes
+
+# list any Jinja2 extensions to enable here:
+#jinja2_extensions = jinja2.ext.do,jinja2.ext.i18n
+
+# if set, always use this private key file for authentication, same as 
+# if passing --private-key to ansible or ansible-playbook
+#private_key_file = /path/to/file
+
+# format of string {{ ansible_managed }} available within Jinja2 
+# templates indicates to users editing templates files will be replaced.
+# replacing {file}, {host} and {uid} and strftime codes with proper values.
+ansible_managed = Ansible managed: {file} modified on %Y-%m-%d %H:%M:%S by {uid} on {host}
+
+# by default, ansible-playbook will display "Skipping [host]" if it determines a task
+# should not be run on a host.  Set this to "False" if you don't want to see these "Skipping" 
+# messages. NOTE: the task header will still be shown regardless of whether or not the 
+# task is skipped.
+#display_skipped_hosts = True
+
+# by default (as of 1.3), Ansible will raise errors when attempting to dereference 
+# Jinja2 variables that are not set in templates or action lines. Uncomment this line
+# to revert the behavior to pre-1.3.
+#error_on_undefined_vars = False
+
+# set plugin path directories here, seperate with colons
+action_plugins     = /usr/share/ansible_plugins/action_plugins
+callback_plugins   = /usr/share/ansible_plugins/callback_plugins
+connection_plugins = /usr/share/ansible_plugins/connection_plugins
+lookup_plugins     = /usr/share/ansible_plugins/lookup_plugins
+vars_plugins       = /usr/share/ansible_plugins/vars_plugins
+filter_plugins     = /usr/share/ansible_plugins/filter_plugins
+
+# don't like cows?  that's unfortunate.
+# set to 1 if you don't want cowsay support or export ANSIBLE_NOCOWS=1 
+#nocows = 1
+
+# don't like colors either?
+# set to 1 if you don't want colors, or export ANSIBLE_NOCOLOR=1
+#nocolor = 1
+
+# the CA certificate path used for validating SSL certs. This path 
+# should exist on the controlling node, not the target nodes
+# common locations:
+# RHEL/CentOS: /etc/pki/tls/certs/ca-bundle.crt
+# Fedora     : /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+# Ubuntu     : /usr/share/ca-certificates/cacert.org/cacert.org.crt
+#ca_file_path = 
+
+# the http user-agent string to use when fetching urls. Some web server
+# operators block the default urllib user agent as it is frequently used
+# by malicious attacks/scripts, so we set it to something unique to 
+# avoid issues.
+#http_user_agent = ansible-agent
+
+[paramiko_connection]
+
+# uncomment this line to cause the paramiko connection plugin to not record new host
+# keys encountered.  Increases performance on new host additions.  Setting works independently of the
+# host key checking setting above.
+#record_host_keys=False
+
+# by default, Ansible requests a pseudo-terminal for commands executed under sudo. Uncomment this
+# line to disable this behaviour.
+#pty=False
+
+[ssh_connection]
+
+# ssh arguments to use
+# Leaving off ControlPersist will result in poor performance, so use 
+# paramiko on older platforms rather than removing it
+#ssh_args = -o ControlMaster=auto -o ControlPersist=60s
+
+# The path to use for the ControlPath sockets. This defaults to
+# "%(directory)s/ansible-ssh-%%h-%%p-%%r", however on some systems with
+# very long hostnames or very long path names (caused by long user names or 
+# deeply nested home directories) this can exceed the character limit on
+# file socket names (108 characters for most platforms). In that case, you 
+# may wish to shorten the string below.
+# 
+# Example: 
+# control_path = %(directory)s/%%h-%%r
+#control_path = %(directory)s/ansible-ssh-%%h-%%p-%%r
+
+# Enabling pipelining reduces the number of SSH operations required to 
+# execute a module on the remote server. This can result in a significant 
+# performance improvement when enabled, however when using "sudo:" you must 
+# first disable 'requiretty' in /etc/sudoers
+#
+# By default, this option is disabled to preserve compatibility with
+# sudoers configurations that have requiretty (the default on many distros).
+# 
+#pipelining = False
+
+# if True, make ansible use scp if the connection type is ssh 
+# (default is sftp)
+#scp_if_ssh = True
+
+[accelerate]
+accelerate_port = 5099
+accelerate_timeout = 30
+accelerate_connect_timeout = 5.0
+
+```
+
+- ansible --version
+
+  #### *Create vim host under etc/ansible*
+- vim hosts
+  *paste ip of the two hosts in format*
+  
+   [us-server]
+  
+   172.31.1.23
+  
+- ansible all --list-hosts
+- ansible all -m ping
+  *type yes 2 times*
+  
+#### *When the output is green command is executed, when gold that means ansible did changes in the remote machine and when in red it indicates error*
+
+### *Configure web server*
+ - cd /etc/ansible
+ - vim configure.yml
+
+#### *Paste the below content inside vim file*
+
+```yaml
+
+   ---
+
+- name: configure apache server
+  hosts: all
+
+  tasks:
+
+     - name: installed httpd pkg
+       dnf:
+            name: httpd
+            state: latest
+     - name: copy index.html file
+       copy:
+            src: index.html
+            dest: /var/www/html/index.html
+     - name: started apache
+       systemd:
+             name: httpd
+             state: started
+             enabled: true
+
+```
+
+       
+ - ansible-playbook configure.yml --syntax-check
+ - cat >index.html
+ - ansible-playbook configure.yml  
+   #### *paste the public ip of the host*
+
+   ### *To make a group and a user using script*
+
+    vim playbook.yml
+
+#### *Paste the below content inside the vim file*
+
+```yaml
+---
+
+- name: creating some user & group
+  hosts: all
+
+
+  tasks:
+
+    - name: create a group
+      group:
+           name: devops
+           state: present
+    - name: create an user thor
+      user:
+           name: thor
+           uid: 1200
+           shell: /bin/bash
+           home: /home/india
+           groups: devops
+           state: present
+    - name: install smb pkg
+      yum:
+           name: cifs-utils
+           state: present
+    - name: install ftp
+      yum:
+           name: nfs-utils
+           state: present
+```
+
+- ansible-playbook playbook.yml
+ 
+#### *Go to host and run the below command to check the user created inside group*
+
+- cat /etc/group
+
+### *Handler*
+- vim configure-appache.yml   (*Inside ansible directory*)
+(*Paste the below content*)
+
+```yaml
+  ---
+- name: configure apache with handler
+  hosts: all
+  tasks:
+    - name: installed httpd
+      dnf:
+        name: httpd
+        state: latest
+ 
+    - name: copied httpd.conf file on target machine
+      copy:
+        src: httpd.conf
+        dest: /etc/httpd/conf/httpd.conf
+ 
+    - name: copied index.html
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+ 
+    - name: restart the httpd service
+      systemd:
+        name: httpd
+        state: restarted
+        enabled: true
+      notify: restart_httpd
+  
+  handlers:
+    - name: restart_httpd
+      service:
+        name: httpd
+        state: restarted
+        enabled: true
+ 
+    - name: restart_firewalld
+      service:
+        name: firewalld
+        state: restarted
+        enabled: true
+```
+
+(*Now make an index file*)
+  - cat > index.html
+  - yum install httpd -y
+  - cd /etc/ansible
+  - vim /etc/httpd/conf/httpd.conf     (#*Add a comment at start #Mahek Shetty and then save it*)
+  - ll              (#*Check for index.html file*)
+  - ansible-playbook configure-appache.yml --syntax-check     (#*Handler and task should have same indentation*)
+  - ansible-playbook configure-appache.yml
+
+ #### (*Now go to host and check if the files are reflecting*)
+
+(*To check if httpd is installed*)
+ -  rpmquery httpd
+    
+(*To check if the index html file is available*)
+ -  cd /var/www/html
+ -  ll
+   
+(*To check conf file*)
+ -  cd /etc/httpd/conf
+ -  ll
+   
+(*Check if the changes made in the /etc/httpd/conf/httpd.conf is reflecting*)
+ - cat httpd.conf
+ - ip a s
+ - curl http://172.31.34.36
+
+### *Configure AWS with ansible*
+
+-  cd /etc/ansible
+-  vim creds.yml        (#*Paste the aws_access_key: and aws_secret_key: *)
+-  vim ec2.yml
+
+#### *Here change the ami, region, security group, key name*
+
+```yaml
+  ---
+- name: create an ec2 instance
+  hosts: all
+  vars_files:
+        - creds.yml
+  tasks:
+    - name: install pip
+      yum:
+        name: pip
+        state: present
+    - name: install boto3
+      pip:
+        name: boto3
+        state: present
+
+    - name: create an ec2 instance using ansible
+      amazon.aws.ec2_instance:
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        key_name: "ans-key"
+        instance_type: t2.micro
+        security_group: sg-0891eca823714b7e5
+        region: ap-southeast-2
+        count: 1
+        image_id: ami-0e8fd5cc56e4d158c
+        tags:
+
+```
+
+ ansible-playbook ec2.yml
+
+
+
+
+   tomcat
+   dnf install java-17-amazon-corretto -y
+> wget -O /etc/yum.repos.d/jenkins.repo \https://pkg.jenkins.io/redhat-stable/jenkins.repo
+> rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+> dnf install jenkins -y
+> systemctl enable jenkins
+> systemctl start jenkins
+
+Tomcat 
+sudo su -
+install java
+java --version
+Go to apache tomcat link and copy tar.gz file
+cd /opt
+wget (copy targz link)
+ls (find targz file)
+tar -xvzf apache.....   (copy the link from ls)
+ls
+mv apache-tomcat-9.0:76 tomcat (move the file to tomcat folder)
+ls
+cd tomcat
+cd bin
+./startup.sh
+copy the public IP of server an open it on new tab with port 8080
+To resolve 403 access denied go to context.xml 
+cd..
+find /-name context.xml
+(Here we need to edit last two files)
+open first file of the last two files with vim
+(Since the valve line is only allowing local host we will comment out those lines)
+comment <!-- 0:1 -->
+save the file
+edit second file on similar lines
+cd bin/
+./shutdown.sh
+./startup.sh
+Refresh the browser >> go to manager app
+Inorder to set credentials first 
+cd ..
+cd conf/
+(edit tomcat-users.xml file)
+vim tomcat-users.xml
+(Go to the end of the file *shift+g*)
+uncomment the role part 
+cd bin/
+./shutdown.sh
+./startup.sh
+refresh browser
+manager app >> enter admin
+Go to jenkins > manage jenkins > plugins > available plugins > deploy to container > install without restart
+manage jenkins > security > system > global > add creds > developer (username) > password
+ID - (tomcat cred)
+descr - ("")
+click on create 
+dashboard >> new job >> build and deploy >> maven project >> ok
+Give description build and deploy
+git
+repository (HTTPS)
+main
+build
+goals and option >> clean install
+post build action >> deploy war to container 
+**/*.war (no space)
+container (Tomcat 8x version)
+credentials (developer)
+URL of tomcat servers
+Apply >> save 
+(Before clicking build now close the apache tab to avoid any conflict)
+paste the public ip:8080
+manager app >> web app
+Now go to git hub >> web app> webapp> index-jsp > edit > commit changes > build now
+
+
+Tomcat download commands
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.93/bin/apache-tomcat-9.0.93.tar.gz
+
+tomcat-users.xml
+  <role rolename="manager-gui"/>
+  <role rolename="manager-script"/>
+  <role rolename="manager-jmx"/>
+  <role rolename="manager-status"/>
+  <user username="admin" password="admin" roles="manager-gui, manager-script, manager-jmx, manager-status"/>
+  <user username="developer" password="developer" roles="manager-script"/>
+  <user username="tomcat" password="s3cret" roles="manager-gui"/>
+
+  Skip to content
+Navigation Menu
+Prakhar10747884
+/
+new_imp
+
+Type / to search
+Code
+Issues
+Pull requests
+1
+Actions
+Projects
+Security
+Insights
+Comparing changes
+Choose two branches to see what’s changed or to start a new pull request. If you need to, you can also  or learn more about diff comparisons.
+ 
+ 
+...
+ 
+ 
+  Able to merge. These branches can be automatically merged.
+Discuss and review the changes in this comparison with others. Learn about pull requests
+ 1 commit
+ 1 file changed
+ 1 contributor
+Commits on Sep 18, 2024
+Create EKS.md
+
+@Prakhar0103
+Prakhar0103 committed now
+ Showing  with 236 additions and 0 deletions.
+ 236 changes: 236 additions & 0 deletions236  
+EKS.m
+Original file line number	Diff line number	Diff line change
+@@ -0,0 +1,236 @@
+## *EKS-Cluster*
+
+### *Create an EC2 instance EKS-mgr   Ubuntu t2.micro All traffic 1x10*
+### *Then create a role and give full access to Elasticcontainer full access ,amazonekscluster policy and IAM full*
+### *unzip file*
+ - apt install unzip -y
+ - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+ - unzip awscliv2.zip
+### *install aws*
+ - sudo ./aws/install
+### *configure aws*
+ - aws configure
+
+(*Region without a,b and in output format enter table*)
+
+### *Install EKS Tool*
+ - curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+ - sudo mv /tmp/eksctl /usr/local/bin
+ - eksctl version
+### *Install Kubectl*
+
+ -  curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+ -  sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+ -  kubectl version --client
+### *Create EKS Cluster*
+ -  eksctl create cluster --name my-cluster --region region-code --version 1.29 --vpc-public-subnets subnet-ExampleID1,subnet-ExampleID2 --without-nodegroup
+
+ (*Here in this case just add the region us-west-1 instead of region code, two empty subnets from vpc < subnet instead of ExampleID1 and ID2*)
+
+   ### *Creating node3 group*
+
+  - ssh-keygen
+
+  eksctl create nodegroup \
+  --cluster my-cluster \
+  --region us-east-2 \
+  --name my-node-group \
+  --node-ami-family Ubuntu2004 \
+  --node-type t2.small \
+  --subnet-ids subnet-086ced1a84c94a342,subnet-01695faa5e0e61d97 \
+  --nodes 3 \
+  --nodes-min 2 \
+  --nodes-max 4 \
+  --ssh-access \
+  --ssh-public-key /root/.ssh/id_rsa.pub
+
+    (*Change the subnet here as previously done*)
+    (*Change the region here*)
+
+### *When You want to delete cluster*
+  - eksctl delete cluster --name my-cluster
+
+### *Create replicaset*
+### *Replicaset is creating multiple pods simultaneously*
+  - vim replicaset.yml
+
+### *Paste the below content inside* 
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: apache-app
+        image: nginx
+
+  - kubectl apply -f replicaset.yml
+  - kubectl get pods
+
+### *Here after pod just paste one of the pods created simultaneously with the same timings*
+
+  - kubectl describe pod frontend-2j7rv
+
+
+### *When number of pods are reduced the last pod will be deleted*
+### *When number of pods are increased the it will add on to the number of existing pods*
+### *Resizing the pod size with autoscaling and manual scaling*
+### *Once the pods are autoscaled they can't be autoscaled back again thus in that case they need to be manually scaled*
+### *Manual scaling is vertical and automatic scaling is horizontal*
+
+(*This command will just give an overview of all the pods in detail*)
+
+- kubectl get pod -o wide
+- kubectl autoscale rs frontend --max=10 --min=3
+
+### *Manual scaling*
+
+- kubectl scale --replicas=9 -f replicaset.yml
+
+- kubectl get rs
+
+### *When You want to delete cluster*
+
+- eksctl delete cluster --name my-cluster
+
+### *Deployment*
+
+- vim glenn-deployment.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glenn-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+
+  - kubectl apply -f mahek-deployment.yml
+  - kubectl get pods
+  - kubectl get rs
+  - kubectl get deployment
+  - kubectl describe deployment glenn-deployment
+  - kubectl autoscale deployment glenn-deployment --max=10 --min=3
+  - kubectl get pods
+
+### *Rolling Updates*
+
+(*Changing the version of nginx*)
+
+  -  kubectl set image deployment.v1.apps/glenn-deployment nginx=nginx:1.16.1  
+  -  kubectl describe deployment glenn-deployment
+  -  kubectl edit deployment/glenn-deployment
+
+     (*change max version 50% and change version 1.14.2*)
+
+### *Create new instance with amazon linux and then install awi and docker*
+ - yum install unzip -y
+ - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+ - unzip awscliv2.zip
+ - sudo ./aws/install
+### *Install Docker*
+ - yum install docker -y
+ - docker info
+ - systemctl start  docker
+ - systemctl enable docker
+ - docker info
+### *ECR*
+ -  wget https://www.free-css.com/assets/files/free-css-templates/download/page295/antique-cafe.zip
+
+    (*Go to free-css website and select a template >> right click on the download button and copy link*)
+
+ -  vim Dockerfile
+
+   (*This is if you wish to pull the image from other website*)
+
+    FROM centos:latest
+    MAINTAINER mglen05@gmail.com
+    RUN yum install httpd -y
+    RUN yum install zip -y
+    RUN yum install unzip -y
+    ADD https://www.free-css.com/assets/files/free-css-templates/download/page295/antique-cafe.zip
+    WORKDIR /var/www/html
+    RUN unzip antique-cafe.zip
+    RUN cp -rvf.antique-cafe.zip/* .
+    RUN rm -rf antique-cafe.zip
+    CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+    EXPOSE 80
+
+(*This is if you wish to create your own image*)
+
+    FROM ubuntu:22.04
+    RUN apt-get update && apt-get install -y apache2
+    RUN apt-get install -y tree openssh-server openssh-client
+    RUN cd /var/www/html
+    RUN echo "Welcome to Devops" > /var/www/html/index.html
+    RUN service apache2 start
+
+(*Now on dashboard go to AWS Elastic Container Registry > name it as lti-devops > keep it mutable > create > click on lti devops > view push command > copy the commands uptill docker build -t lti-devops*)
+
+   docker build -t lti-devops .
+   docker images
+
+(*These are the commands from the ECR of dashboard*)
+
+   docker tag lti-devops:latest 481665131265.dkr.ecr.us-west-1.amazonaws.com/lti-devops:latest
+   docker push 481665131265.dkr.ecr.us-west-1.amazonaws.com/lti-devops:latest
+
+(*Then go to ECR >> click on the lti-devops >> action >> images >> copy URL to deploy in the pod*)
+
+ ### *Go to your previous cluster >> install nodes >> Do the deployment and edit image with the copied URL*
+
+ - vim glenn-deployment.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mahek-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: (*paste the URL*)
+        ports:
+        - containerPort: 80
+
+  - kubectl apply -f glenn-deployment.yml
+  - kubectl get pods
+  - kubectl get deployment
+  - kubectl describe deployment glenn-deployment
+Footer
+© 2024 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
+Security
+Status
+Docs
+Contact
+Manage cookies
+Do not share my personal information
+Comparing Prakhar10747884:main...Prakhar0103:patch-2 · Prakhar10747884/new_imp
